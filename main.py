@@ -104,6 +104,27 @@ class MarketDB:
         return self.produces.get(produce_id)
     
 
+    def update_produce_item(self, produce_id:int, name:str, quantity_kg: float, price_per_kg: float, category:str, is_available: bool):
+        produce= self.produces.get(produce_id)
+        if not produce:
+            return None
+        produce.name = name
+        produce.quantity_kg = quantity_kg
+        produce.price_per_kg = price_per_kg
+        produce.category = category
+        produce.is_available = is_available
+        self.produces[produce_id] = produce
+        return produce
+    
+    def update_quantity_available(self, produce_id:int, quantity_kg: float):
+        produce = self.produces.get(produce_id)
+        if not produce:
+            return None
+        produce.quantity_kg = quantity_kg
+        self.produces[produce_id] = produce
+        return produce
+    
+
     
 
     def add_order(self, order: Order):
@@ -113,6 +134,7 @@ class MarketDB:
 
     def get_order_details(self, order_id:int):
         return self.orders.get(order_id)
+
     
 
 
@@ -190,6 +212,31 @@ def get_order(order_id:int):
     if not order:
         raise HTTPException(status_code=404, detail="order does not exist")
     return order
+
+
+@app.put("/produce/{produce_id}")
+def update_produce(produce_id:int, name: str, quantity_kg: float, price_per_kg: float, category:str, is_available: bool):
+    produce = db_instance.update_produce_item(produce_id, name, quantity_kg, price_per_kg, category, is_available)
+    if not produce:
+        raise HTTPException(status_code=404, detail="produce does not exist")
+    return {
+        "message": "produce updated successfully",
+        "produce": produce
+    }
+
+@app.patch("/produce/{produce_id}/quantity")
+def update_produce_quantity(produce_id:int, quantity_kg: float):
+    produce = db_instance.update_quantity_available(produce_id, quantity_kg)
+    if not produce:
+        raise HTTPException(status_code=404, detail="produce does not exist")
+    return {
+
+        "message": "produce quantity updated successfully",
+        "produce": produce
+    }
+
+
+
  
 
 
