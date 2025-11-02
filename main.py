@@ -135,6 +135,23 @@ class MarketDB:
     def get_order_details(self, order_id:int):
         return self.orders.get(order_id)
 
+    def update_order_status(self, order_id: int, status: str):
+        order = self.orders.get(order_id)
+        if not order:
+            return None
+        order.status= status
+        self.orders[order_id] = order
+        return order
+    
+    def cancel_order(self, order_id: int):
+        order =self.orders.get(order_id)
+        if not order:
+            return None
+        order.status = "cancelled"
+        self.orders[order_id] = order
+        return order
+    
+
     
 
 
@@ -233,6 +250,37 @@ def update_produce_quantity(produce_id:int, quantity_kg: float):
 
         "message": "produce quantity updated successfully",
         "produce": produce
+    }
+
+@app.patch("/orders/{order_id}/status")
+def update_order_status(order_id:int, status: str):
+    order = db_instance.update_order_status(order_id, status)
+    if not order:
+        raise HTTPException(status_code=404, detail="order does not exist")
+    return {
+        "message": "order status updated successfully",
+        "order": order
+    }
+
+
+@app.delete("/vendors/{vendor_id}")
+def delete_vendor(vendor_id:int):
+    success= db_instance.remove_vendor(vendor_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="vendor does not exist")
+    return {
+        "message": "vendor deleted successfully"
+    }
+
+
+@app.delete("/orders/{order_id}")
+def cancel_order(order_id:int):
+    order = db_instance.cancel_order(order_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="order does not exist")
+    return {
+        "message": "order cancelled successfully",
+        "order": order
     }
 
 
